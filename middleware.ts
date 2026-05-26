@@ -26,12 +26,10 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const { data: { user } } = await supabase.auth.getUser();
   const { pathname } = request.nextUrl;
 
+  // Only protect these routes
   const protectedRoutes = ["/dashboard", "/log", "/portrait"];
   const isProtected = protectedRoutes.some((r) => pathname.startsWith(r));
 
@@ -39,8 +37,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  const authRoutes = ["/login", "/register"];
-  if (user && authRoutes.includes(pathname)) {
+  // Only redirect away from these if logged in
+  if (user && (pathname === "/login" || pathname === "/register")) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
@@ -49,6 +47,10 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|icons|manifest.json|sw.js).*)",
+    "/dashboard/:path*",
+    "/log/:path*",
+    "/portrait/:path*",
+    "/login",
+    "/register",
   ],
 };
